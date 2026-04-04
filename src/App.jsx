@@ -8,8 +8,6 @@ import {
   Maximize2, AlertCircle, Info, XCircle
 } from 'lucide-react';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200;12..96,800&family=Fira+Code:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,400;1,6..72,200&display=swap');
@@ -103,20 +101,14 @@ const App = () => {
     Include: verdictHeader, verdictReason, score (0-100), status, confidence (1-100), explanation, weightedBreakdown: { technical, heuristic, ai }, findings: [ { label, val, status } ].`;
     
     const makeRequest = async () => {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+      const res = await fetch('/.netlify/functions/analyze-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `Neural Trace Analysis: ${targetUrl}. Provide full forensic JSON breakdown.` }] }],
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
-        })
+        body: JSON.stringify({ url: targetUrl })
       });
       if (!res.ok) throw new Error('API Sync Fault');
       const data = await res.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error('Empty payload');
-      return JSON.parse(text);
+      return data;
     };
 
     let lastError;
